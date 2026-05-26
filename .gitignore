@@ -1,0 +1,41 @@
+# macOS
+.DS_Store
+
+# Local configuration
+local.properties
+*.local
+.env
+.env.*
+
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android / IntelliJ
+*.iml
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+.idea/**/shelf/
+.idea/caches/
+.idea/libraries/
+captures/
+
+# Xcode
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# Logs
+*.log
