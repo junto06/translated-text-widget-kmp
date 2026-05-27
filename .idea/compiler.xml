@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="translated-text-sdk.sampleAndroid" target="21" />
+      <module name="translated-text-sdk.shared.compose-ui" target="21" />
+      <module name="translated-text-sdk.shared.core" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

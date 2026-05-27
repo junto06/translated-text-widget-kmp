@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="compose-ui">
+    <output-path>$PROJECT_DIR$/shared/compose-ui/build/libs</output-path>
+    <root id="archive" name="compose-ui.jar">
+      <element id="module-output" name="translated-text-widget.shared.compose-ui.androidMain" />
+    </root>
+  </artifact>
+</component>
