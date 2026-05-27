@@ -41,6 +41,11 @@ internal class AndroidTranslationViewModel(sdk: TranslationSDK) : ViewModel() {
     fun hasTranslation(key: String): Boolean {
         return sharedViewModel.hasTranslation(key)
     }
+
+    override fun onCleared() {
+        sharedViewModel.close()
+        super.onCleared()
+    }
 }
 
 internal class AndroidTranslationViewModelFactory(

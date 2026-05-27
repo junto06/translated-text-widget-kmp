@@ -9,15 +9,19 @@
 /* Begin PBXBuildFile section */
 		1A0000010000000000000001 /* TranslatedTextWidgetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000010000000000000011 /* TranslatedTextWidgetApp.swift */; };
 		1A0000010000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000010000000000000012 /* ContentView.swift */; };
+		1A0000010000000000000003 /* ComposeSampleWidgetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000010000000000000016 /* ComposeSampleWidgetApp.swift */; };
 		1A0000010000000000000004 /* TranslationSDKUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1A0000010000000000000014 /* TranslationSDKUI */; };
-		1A0000010000000000000005 /* ComposeUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0000010000000000000016 /* ComposeUI.framework */; };
+		1A0000010000000000000005 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000010000000000000017 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1A0000010000000000000010 /* TranslatedText Widget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TranslatedText Widget.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0000010000000000000013 /* TranslatedText Compose.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TranslatedText Compose.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000010000000000000011 /* TranslatedTextWidgetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedTextWidgetApp.swift; sourceTree = "<group>"; };
 		1A0000010000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		1A0000010000000000000016 /* ComposeUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ComposeUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0000010000000000000016 /* ComposeSampleWidgetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeSampleWidgetApp.swift; sourceTree = "<group>"; };
+		1A0000010000000000000017 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1A0000010000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -25,8 +29,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1A0000010000000000000005 /* ComposeUI.framework in Frameworks */,
 				1A0000010000000000000004 /* TranslationSDKUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0000010000000000000021 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -46,15 +56,26 @@
 			children = (
 				1A0000010000000000000011 /* TranslatedTextWidgetApp.swift */,
 				1A0000010000000000000012 /* ContentView.swift */,
+				1A0000010000000000000033 /* composeSample */,
 			);
 			path = iosApp;
+			sourceTree = "<group>";
+		};
+		1A0000010000000000000033 /* composeSample */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000010000000000000016 /* ComposeSampleWidgetApp.swift */,
+				1A0000010000000000000017 /* ComposeContentView.swift */,
+				1A0000010000000000000018 /* Info.plist */,
+			);
+			path = composeSample;
 			sourceTree = "<group>";
 		};
 		1A0000010000000000000032 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				1A0000010000000000000010 /* TranslatedText Widget.app */,
-				1A0000010000000000000016 /* ComposeUI.framework */,
+				1A0000010000000000000013 /* TranslatedText Compose.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +104,26 @@
 			productReference = 1A0000010000000000000010 /* TranslatedText Widget.app */;
 			productType = "com.apple.product-type.application";
 		};
+		1A0000010000000000000041 /* TranslatedText Compose */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A0000010000000000000085 /* Build configuration list for PBXNativeTarget "TranslatedText Compose" */;
+			buildPhases = (
+				1A0000010000000000000051 /* Build TranslationSDK */,
+				1A0000010000000000000061 /* Sources */,
+				1A0000010000000000000021 /* Frameworks */,
+				1A0000010000000000000071 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "TranslatedText Compose";
+			packageProductDependencies = (
+			);
+			productName = "TranslatedText Compose";
+			productReference = 1A0000010000000000000013 /* TranslatedText Compose.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -93,7 +134,10 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
-					1A0000010000000000000040 = {
+				1A0000010000000000000040 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					1A0000010000000000000041 = {
 						CreatedOnToolsVersion = 26.5;
 					};
 				};
@@ -115,12 +159,20 @@
 			projectRoot = "";
 			targets = (
 				1A0000010000000000000040 /* TranslatedText Widget */,
+				1A0000010000000000000041 /* TranslatedText Compose */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1A0000010000000000000070 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0000010000000000000071 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -147,7 +199,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n\nif [[ \"$SDK_NAME\" == iphoneos* ]]; then\n  KOTLIN_TARGET=\"IosArm64\"\nelif [[ \"$ARCHS\" == *x86_64* ]]; then\n  KOTLIN_TARGET=\"IosX64\"\nelse\n  KOTLIN_TARGET=\"IosSimulatorArm64\"\nfi\n\nsh gradlew \":shared:core:linkDebugFramework${KOTLIN_TARGET}\" \":shared:compose-ui:linkDebugFramework${KOTLIN_TARGET}\"\n";
+			shellScript = "cd \"$SRCROOT/..\"\n\nif [[ \"$SDK_NAME\" == iphoneos* ]]; then\n  KOTLIN_TARGET=\"IosArm64\"\nelif [[ \"$ARCHS\" == *x86_64* ]]; then\n  KOTLIN_TARGET=\"IosX64\"\nelse\n  KOTLIN_TARGET=\"IosSimulatorArm64\"\nfi\n\nsh gradlew \":shared:core:linkDebugFramework${KOTLIN_TARGET}\" \":sampleIosCompose:linkDebugFramework${KOTLIN_TARGET}\"\n";
+		};
+		1A0000010000000000000051 /* Build TranslationSDK */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build iOS Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/..\"\n\nif [[ \"$SDK_NAME\" == iphoneos* ]]; then\n  KOTLIN_TARGET=\"IosArm64\"\nelif [[ \"$ARCHS\" == *x86_64* ]]; then\n  KOTLIN_TARGET=\"IosX64\"\nelse\n  KOTLIN_TARGET=\"IosSimulatorArm64\"\nfi\n\nsh gradlew \":shared:core:linkDebugFramework${KOTLIN_TARGET}\" \":shared:compose-ui:linkDebugFramework${KOTLIN_TARGET}\" \":sampleIosCompose:linkDebugFramework${KOTLIN_TARGET}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -158,6 +229,15 @@
 			files = (
 				1A0000010000000000000001 /* TranslatedTextWidgetApp.swift in Sources */,
 				1A0000010000000000000002 /* ContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0000010000000000000061 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A0000010000000000000003 /* ComposeSampleWidgetApp.swift in Sources */,
+				1A0000010000000000000005 /* ComposeContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,11 +273,11 @@
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = (
 					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
-					"$(SRCROOT)/../shared/compose-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosArm64/debugFramework",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]" = (
 					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/compose-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosSimulatorArm64/debugFramework",
 				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -212,7 +292,7 @@
 					"-framework",
 					TranslationSDK,
 					"-framework",
-					ComposeUI,
+					ComposeSampleUI,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sdk.translation.sample;
 				PRODUCT_NAME = "TranslatedText Widget";
@@ -237,11 +317,11 @@
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = (
 					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
-					"$(SRCROOT)/../shared/compose-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosArm64/debugFramework",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]" = (
 					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/compose-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosSimulatorArm64/debugFramework",
 				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iosApp/Info.plist;
@@ -256,10 +336,106 @@
 					"-framework",
 					TranslationSDK,
 					"-framework",
-					ComposeUI,
+					ComposeSampleUI,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sdk.translation.sample;
 				PRODUCT_NAME = "TranslatedText Widget";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1A0000010000000000000083 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = (
+					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/compose-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosArm64/debugFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/compose-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosSimulatorArm64/debugFramework",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iosApp/composeSample/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					TranslationSDK,
+					"-framework",
+					ComposeUI,
+					"-framework",
+					ComposeSampleUI,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sdk.translation.compose.sample;
+				PRODUCT_NAME = "TranslatedText Compose";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1A0000010000000000000084 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]" = (
+					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/compose-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosArm64/debugFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/compose-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../sampleIosCompose/build/bin/iosSimulatorArm64/debugFramework",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iosApp/composeSample/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					TranslationSDK,
+					"-framework",
+					ComposeUI,
+					"-framework",
+					ComposeSampleUI,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sdk.translation.compose.sample;
+				PRODUCT_NAME = "TranslatedText Compose";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
@@ -386,6 +562,15 @@
 			buildConfigurations = (
 				1A0000010000000000000081 /* Debug */,
 				1A0000010000000000000082 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1A0000010000000000000085 /* Build configuration list for PBXNativeTarget "TranslatedText Compose" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0000010000000000000083 /* Debug */,
+				1A0000010000000000000084 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

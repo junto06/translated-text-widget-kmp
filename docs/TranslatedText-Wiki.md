@@ -49,10 +49,8 @@ interface TranslationApi : Closeable {
 Contains the Compose text widget:
 
 - `TranslatedText`
-- `TranslationSampleScreen`
 - `rememberTranslationSDK`
 - Android ViewModel wrapper
-- iOS Compose entry point through `MainViewController`
 
 Use this module when the host app wants a Compose `TranslatedText` widget on
 Android or Compose Multiplatform on iOS.
@@ -70,16 +68,31 @@ translation backend.
 
 ### `iosApp`
 
-The iOS sample consumes both iOS options:
+The iOS sample consumes the native SwiftUI widget through
+`TranslationSDKUI.TranslatedText`.
 
-- SwiftUI tab: native `TranslationSDKUI.TranslatedText`
-- Compose tab: `ComposeUI.MainViewControllerKt.MainViewController()`
+### `sampleIosCompose`
+
+The Compose sample target is sample-only and consumes the production widget
+through the `ComposeSampleUI` framework and its `MainViewControllerKt.MainViewController()`
+entry point. It keeps the Compose demo out of the published `shared/compose-ui`
+module.
 
 ## Provider Model
 
 The SDK supports two provider paths.
 
 ### Built-In Google Provider
+
+The built-in provider is a thin Google Translate REST client. The host app owns
+the API key boundary and passes the key into `TranslationSDK.Builder.apiKey(...)`
+or `rememberTranslationSDK(...)`. The SDK does not discover keys from environment
+variables, Gradle files, Info.plist, or bundled config.
+
+Do not commit real API keys. Keep them in app-owned secret storage or build-time
+configuration that is excluded from source control, such as Android
+`local.properties`/`BuildConfig`, CI secrets, a backend-issued token, or an iOS
+build setting/config file.
 
 ```kotlin
 val sdk = TranslationSDK.Builder()
@@ -88,7 +101,8 @@ val sdk = TranslationSDK.Builder()
     .build()
 ```
 
-This creates `GoogleTranslateApi` internally.
+This creates `GoogleTranslateApi` internally. If `translationApi(...)` is
+provided instead, the SDK uses that provider and does not require a Google key.
 
 ### Custom Provider
 
@@ -259,32 +273,22 @@ TranslatedText(
 The SwiftUI widget uses a closure so it can also call a native iOS translation
 service directly if the app does not want to route through Kotlin.
 
-## iOS Compose Integration
-
-The Compose widget framework exposes an iOS view controller:
-
-```swift
-import ComposeUI
-import SwiftUI
-import UIKit
-
-struct ComposeWidgetSample: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.MainViewController()
-    }
-
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-    }
-}
-```
-
-The sample app shows this in a separate tab from the native SwiftUI widget.
-
 ## Caching Behavior
 
 `TranslationSDK` checks cache before calling the provider. Cache keys include the
 source text and target language. If a cached translation exists, no provider call
 is made.
+
+The current cache is persistent, not in-memory only. `TranslationCache` stores
+JSON-encoded entries through `multiplatform-settings`:
+
+- Android: `SharedPreferencesSettings` backed by the private
+  `translation_sdk` `SharedPreferences` file
+- iOS: `NSUserDefaultsSettings` backed by `NSUserDefaults.standardUserDefaults`
+
+There is no DataStore, file cache, or in-memory `LruCache` layer in the current
+implementation. Cached translations survive app cold starts until they are
+cleared, expired by TTL, or invalidated by changing the cache version.
 
 Builder options:
 
@@ -312,12 +316,17 @@ val sdk = TranslationSDK.Builder()
     .errorReporter(
         object : TranslationErrorReporter {
             override fun report(error: TranslationSdkException) {
-                println(error.report)
+                recordTranslationError(error.report)
             }
         }
     )
     .build()
 ```
+
+The shared `TranslationViewModel` does not log failures with `println`. Failed
+requests are reported by `TranslationSDK` through the configured
+`TranslationErrorReporter`; the view model only keeps its in-memory state
+unchanged when a request fails.
 
 Error reports include:
 
@@ -330,16 +339,25 @@ Error reports include:
 
 ## Lifecycle
 
-Call `close()` when the SDK is no longer needed:
+Call `close()` when the SDK is no longer needed. The SDK owns the active
+`TranslationApi`; the built-in Google provider closes its Ktor HTTP client from
+this path.
 
 ```kotlin
 sdk.close()
 ```
 
-`rememberTranslationSDK(...)` handles this automatically with `DisposableEffect`.
+`close()` is idempotent, so duplicate lifecycle teardown is safe.
 
-On iOS, close the SDK from the owning view model or app lifecycle object when it
-is no longer needed.
+Platform behavior in this project:
+
+- Android Compose: `rememberTranslationSDK(...)` closes the SDK with
+  `DisposableEffect`, and `AndroidTranslationViewModel.onCleared()` also closes
+  the shared view model/SDK when the Android lifecycle ViewModel is destroyed.
+- iOS Compose: the cached Compose `TranslationViewModel` cancels its
+  `MainScope` and closes the SDK when the last Compose reference is disposed.
+- iOS SwiftUI: keep the SDK in an owning object such as an `ObservableObject`
+  and call `sdk.close()` from `deinit` or the app lifecycle teardown.
 
 ## Build Commands
 
@@ -358,7 +376,7 @@ Shared Kotlin verification:
   :shared:compose-ui:linkDebugFrameworkIosSimulatorArm64
 ```
 
-iOS sample:
+iOS sample targets:
 
 ```bash
 xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
@@ -366,12 +384,18 @@ xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
   -sdk iphonesimulator \
   -configuration Debug build \
   CODE_SIGNING_ALLOWED=NO
+
+xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
+  -scheme "TranslatedText Compose" \
+  -sdk iphonesimulator \
+  -configuration Debug build \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Current Notes
 
-- The iOS sample links both `TranslationSDK.framework` and `ComposeUI.framework`.
+- The iOS sample links `TranslationSDK.framework` and the native SwiftUI package.
+- The Compose sample target links `TranslationSDK.framework`, `ComposeUI.framework`,
+  and `ComposeSampleUI.framework`.
 - `shared/ios-widget` is a Swift Package and does not depend directly on the
   Kotlin framework.
-- The Compose iOS build may emit an ICU deployment-target warning from Compose
-  dependencies. The app still builds successfully.

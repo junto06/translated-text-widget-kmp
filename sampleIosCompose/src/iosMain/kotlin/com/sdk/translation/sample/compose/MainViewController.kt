@@ -1,8 +1,7 @@
-@file:Suppress("FunctionName")
-
-package com.sdk.translation.compose
+package com.sdk.translation.sample.compose
 
 import androidx.compose.ui.window.ComposeUIViewController
+import com.sdk.translation.compose.rememberTranslationSDK
 import platform.UIKit.UIViewController
 
 fun MainViewController(): UIViewController {
@@ -11,6 +10,7 @@ fun MainViewController(): UIViewController {
             apiKey = "YOUR_GOOGLE_TRANSLATE_API_KEY",
             defaultLanguage = "de"
         )
+
         TranslationSampleScreen(sdk = sdk)
     }
 }

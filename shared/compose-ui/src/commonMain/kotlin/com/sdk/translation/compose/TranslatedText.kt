@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,7 +61,6 @@ fun TranslatedText(
     seeTranslationText: String = "See translation",
     hideTranslationText: String = "Hide translation"
 ) {
-    val translationKey = "$targetLanguage:$rawText"
 
     if (!translationRequired) {
         StyledText(
@@ -87,6 +86,7 @@ fun TranslatedText(
         return
     }
 
+    val translationKey = "$targetLanguage:$rawText"
     val viewModel = rememberTranslationViewModel(sdk)
     val translationState = remember(translationKey) {
         viewModel.getTranslationState(translationKey)

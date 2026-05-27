@@ -1,25 +1,33 @@
-import ComposeUI
+import ComposeSampleUI
 import SwiftUI
 import TranslationSDK
 import TranslationSDKUI
 import UIKit
 
-struct ContentView: View {
-    private let sdk = TranslationSDK.Builder()
+private final class TranslationSDKOwner: ObservableObject {
+    let sdk = TranslationSDK.Builder()
         .apiKey(key: "YOUR_GOOGLE_TRANSLATE_API_KEY")
         .defaultLanguage(lang: "de")
         .build()
 
+    deinit {
+        sdk.close()
+    }
+}
+
+struct ContentView: View {
+    @StateObject private var sdkOwner = TranslationSDKOwner()
+
     var body: some View {
         TabView {
-            NativeWidgetSample(sdk: sdk)
+            NativeWidgetSample(sdk: sdkOwner.sdk)
                 .tabItem {
-                    Text("SwiftUI")
+                    Label("SwiftUI", systemImage: "swift")
                 }
 
             ComposeWidgetSample()
                 .tabItem {
-                    Text("Compose")
+                    Label("Compose", systemImage: "square.grid.2x2")
                 }
         }
     }

@@ -1,4 +1,4 @@
-package com.sdk.translation.compose
+package com.sdk.android
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sdk.translation.TranslationSDK
+import com.sdk.translation.compose.TranslatedText
 
 @Composable
 fun TranslationSampleScreen(
