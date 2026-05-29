@@ -17,6 +17,15 @@ The SDK ships with Google Translate and built-in OpenAI-compatible LLM providers
 but the core API is provider-based. Developers can plug in any service by
 implementing `TranslationApi`.
 
+#Android
+<img width="270" height="600" alt="Screenshot_20260529_122547" src="https://github.com/user-attachments/assets/bf6bba62-65e4-4bd7-925c-838c3ea7d48c" />
+
+#ios swift
+<img width="300" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-05-29 at 12 54 07" src="https://github.com/user-attachments/assets/450944db-e300-4766-ba44-381428d43c6a" />
+
+#ios compose
+<img width="300" height="655" alt="Simulator Screenshot - iPhone 17 - 2026-05-29 at 12 54 11" src="https://github.com/user-attachments/assets/e7be3303-4494-423e-8837-b195c3c40eb6" />
+
 ## Quick Start
 
 ### 1. Initialize the SDK once
