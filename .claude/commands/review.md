@@ -26,17 +26,28 @@ Then review against these criteria:
 
 ## Swift Interop
 - Kotlin `init` on companion objects is exposed as `doInit` in Swift — not called as `init`
-- Kotlin default parameter values are NOT bridged to Swift — all parameters must be passed explicitly
+- Kotlin default parameter values are NOT bridged to Swift — all parameters must be passed explicitly from Swift call sites. This rule applies to Kotlin code only; Swift default parameter values (`= nil`, `= "en"`) are perfectly valid in Swift files.
 - `companion object` functions accessed as `Type.companion.functionName()` in Swift
+- Kotlin non-null `String` maps to Swift `String` (not `String?`) — no nil crash risk on non-null Kotlin properties
 
 ## Compose
 - `remember` keys match the data they depend on
 - Side effects use the right effect handler (`LaunchedEffect` vs `DisposableEffect` vs `SideEffect`)
 - No heavy work done directly in composition
+- Use `remember(key)` for values derived from parameters — `derivedStateOf` is for values derived from Compose `State` objects, not from parameters
 
 ## Cache / Storage
-- Cache keys are stable across app restarts (no memory addresses, no random values)
-- `cacheVersion` bumped when cache entry shape changes
+- There are two independent cache layers — do not confuse them:
+  - **In-memory**: `TranslationViewModel._translations` (a `Map<String, String>` StateFlow). Key format: `"$targetLanguage:${rawText.hashCode()}_${rawText.length}"`. Rebuilt fresh on every app start — `String.hashCode()` is stable and content-based on both JVM and Kotlin/Native for strings, making it safe as an in-memory key.
+  - **Persistent**: `TranslationCache` (SharedPreferences on Android, NSUserDefaults on iOS). Key format: `"translation_${lang}_${stableHash(text)}"` using a custom FNV-64 hash — always stable across restarts. The in-memory `hashCode()` never touches persistent storage.
+- `cacheVersion` bumped only when the **persistent** cache entry shape (the stored JSON fields) changes — not when the in-memory key format changes
+
+## Exception Handling
+- `TranslationViewModel.translate()` and `forceTranslate()` already contain `catch (_: Exception) {}` inside the coroutine — they cannot surface exceptions to callers or crash the app. Do not flag `LaunchedEffect { viewModel.translate(...) }` as missing a try-catch.
+- `TranslationSDK.isInitialized` is always checked at the top of `TranslatedText` before `instance` is accessed — do not flag subsequent `instance` accesses in the same scope as unguarded.
+
+## Swift Thread Safety
+- SwiftUI `@State` mutations and `onAppear` both execute on the main thread. Guards like `guard translatedText == nil, !isLoading` are always evaluated serially — there is no concurrent access risk.
 
 ## Security
 - No API keys hardcoded in committed files
