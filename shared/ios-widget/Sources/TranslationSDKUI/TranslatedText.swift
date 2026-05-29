@@ -9,7 +9,7 @@ public struct TranslatedText: View {
 
     let rawText: String
     let translationRequired: Bool
-    let targetLanguage: String
+    let targetLanguage: String?
     let seeTranslationText: String
     let hideTranslationText: String
     let translate: Translate
@@ -21,7 +21,7 @@ public struct TranslatedText: View {
     public init(
         rawText: String,
         translationRequired: Bool = false,
-        targetLanguage: String = "en",
+        targetLanguage: String? = nil,
         seeTranslationText: String = "See translation",
         hideTranslationText: String = "Hide translation",
         translate: @escaping Translate
@@ -58,29 +58,25 @@ public struct TranslatedText: View {
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
+            .onAppear { prefetch() }
         } else {
             Text(rawText)
         }
     }
 
-    private func toggleTranslation() {
-        if isTranslationVisible {
-            isTranslationVisible = false
-            return
-        }
-
-        isTranslationVisible = true
-
-        guard translatedText == nil else {
-            return
-        }
-
+    private func prefetch() {
+        guard translatedText == nil, !isLoading else { return }
+        let lang = targetLanguage ?? TranslationSDK.companion.instance.defaultLanguage
         isLoading = true
-        translate(rawText, targetLanguage) { translatedText in
+        translate(rawText, lang) { result in
             DispatchQueue.main.async {
-                self.translatedText = translatedText
-                isLoading = false
+                self.translatedText = result
+                self.isLoading = false
             }
         }
+    }
+
+    private func toggleTranslation() {
+        isTranslationVisible.toggle()
     }
 }
