@@ -31,6 +31,7 @@ class TranslationSDK private constructor(
     private var defaultTargetLanguage: String,
     private val errorReporter: TranslationErrorReporter
 ) {
+    val defaultLanguage: String get() = defaultTargetLanguage
     private var isClosed = false
 
     companion object {

@@ -1,0 +1,78 @@
+name: PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        run: git diff origin/${{ github.base_ref }}...HEAD > /tmp/diff.txt
+
+      - name: Run DeepSeek review
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          pip install openai --quiet
+          python3 << 'EOF'
+          import os, re, subprocess, sys
+          from openai import OpenAI
+
+          with open(".claude/commands/review.md") as f:
+              content = f.read()
+
+          # Strip YAML frontmatter
+          instructions = re.sub(r"^---.*?---\s*", "", content, flags=re.DOTALL)
+
+          with open("/tmp/diff.txt") as f:
+              diff = f.read()
+
+          if not diff.strip():
+              print("Empty diff — skipping review")
+              sys.exit(0)
+
+          # Truncate very large diffs
+          if len(diff) > 100_000:
+              diff = diff[:100_000] + "\n\n[diff truncated — showing first 100k chars]"
+
+          client = OpenAI(
+              api_key=os.environ["DEEPSEEK_API_KEY"],
+              base_url="https://api.deepseek.com"
+          )
+          response = client.chat.completions.create(
+              model="deepseek-chat",
+              max_tokens=4096,
+              messages=[{
+                  "role": "user",
+                  "content": f"{instructions}\n\n## Diff\n\n```diff\n{diff}\n```"
+              }]
+          )
+
+          review = response.choices[0].message.content
+          body = f"## DeepSeek Code Review\n\n{review}\n\n---\n*Reviewed by [DeepSeek](https://deepseek.com) using `.claude/commands/review.md`*"
+
+          with open("/tmp/review.txt", "w") as f:
+              f.write(body)
+
+          subprocess.run([
+              "gh", "pr", "comment", os.environ["PR_NUMBER"],
+              "--repo", os.environ["REPO"],
+              "--body-file", "/tmp/review.txt"
+          ], check=True)
+
+          print("Review posted.")
+          EOF

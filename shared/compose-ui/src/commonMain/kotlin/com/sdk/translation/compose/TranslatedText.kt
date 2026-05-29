@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,7 @@ import com.sdk.translation.TranslationSDK
 fun TranslatedText(
     rawText: String,
     translationRequired: Boolean = false,
-    targetLanguage: String = "en",
+    targetLanguage: String? = null,
     content: @Composable (
         rawText: String,
         translation: String?,
@@ -52,7 +53,8 @@ fun TranslatedText(
         return
     }
 
-    val translationKey = "$targetLanguage:${rawText.hashCode()}_${rawText.length}"
+    val resolvedLanguage = targetLanguage ?: TranslationSDK.instance.defaultLanguage
+    val translationKey = "$resolvedLanguage:${rawText.hashCode()}_${rawText.length}"
     val viewModel = rememberTranslationViewModel(TranslationSDK.instance)
     val translationState = remember(translationKey) {
         viewModel.getTranslationState(translationKey)
@@ -60,14 +62,15 @@ fun TranslatedText(
     val translation by translationState.collectAsState()
     var isTranslationVisible by remember(translationKey) { mutableStateOf(false) }
 
+    LaunchedEffect(translationKey) {
+        viewModel.translate(translationKey, rawText, resolvedLanguage)
+    }
+
     content(
         rawText,
         translation,
         isTranslationVisible
     ) {
-        if (!isTranslationVisible) {
-            viewModel.translate(translationKey, rawText, targetLanguage)
-        }
         isTranslationVisible = !isTranslationVisible
     }
 }
@@ -77,7 +80,7 @@ fun TranslatedText(
     rawText: String,
     modifier: Modifier = Modifier,
     translationRequired: Boolean = false,
-    targetLanguage: String = "en",
+    targetLanguage: String? = null,
     color: Color = Color.Unspecified,
     autoSize: TextAutoSize? = null,
     fontSize: TextUnit = TextUnit.Unspecified,
