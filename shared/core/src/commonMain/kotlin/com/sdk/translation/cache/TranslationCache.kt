@@ -7,7 +7,7 @@ import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
-@OptIn(ExperimentalTime::class)
+
 class TranslationCache(
     private val settings: Settings,
     private val cacheVersion: String,

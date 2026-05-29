@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,12 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.sdk.translation.TranslationSDK
 import com.sdk.translation.compose.TranslatedText
 
 @Composable
 fun TranslationSampleScreen(
-    sdk: TranslationSDK,
     modifier: Modifier = Modifier
 ) {
     MaterialTheme {
@@ -31,6 +30,7 @@ fun TranslationSampleScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .statusBarsPadding()
+                    .navigationBarsPadding()
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
@@ -48,7 +48,7 @@ fun TranslationSampleScreen(
                 SampleItem {
                     TranslatedText(
                         rawText = "Welcome to the TranslatedText Widget sample app.",
-                        sdk = sdk,
+
                         translationRequired = true,
                         targetLanguage = "de",
                         seeTranslationText = "Translate",
@@ -60,7 +60,7 @@ fun TranslationSampleScreen(
                 SampleItem {
                     TranslatedText(
                         rawText = "This label starts in English and can be translated on demand.",
-                        sdk = sdk,
+
                         translationRequired = true,
                         targetLanguage = "es"
                     )
@@ -69,7 +69,7 @@ fun TranslationSampleScreen(
                 SampleItem {
                     TranslatedText(
                         rawText = "You can customize the link text for your product.",
-                        sdk = sdk,
+
                         translationRequired = true,
                         targetLanguage = "fr",
                         seeTranslationText = "Show French",

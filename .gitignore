@@ -3,6 +3,8 @@
 
 # Local configuration
 local.properties
+iosApp/Secrets.xcconfig
+iosApp/iosApp/Secrets.swift
 *.local
 .env
 .env.*

@@ -1,6 +1,5 @@
 package com.sdk.translation.viewmodel
 
-import com.sdk.translation.Closeable
 import com.sdk.translation.TranslationSDK
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +26,7 @@ import kotlinx.coroutines.sync.withLock
 class TranslationViewModel(
     private val sdk: TranslationSDK,
     private val coroutineScope: CoroutineScope
-) : Closeable {
+) {
     private val _translations = MutableStateFlow<Map<String, String>>(emptyMap())
     private val inFlightKeys = MutableStateFlow<Set<String>>(emptySet())
     private val requestMutex = Mutex()
@@ -63,10 +62,9 @@ class TranslationViewModel(
             }
 
             try {
-                runCatching {
-                    val result = sdk.translate(text, targetLang)
-                    _translations.update { it + (key to result.translatedText) }
-                }
+                val result = sdk.translate(text, targetLang)
+                _translations.update { it + (key to result.translatedText) }
+            } catch (_: Exception) {
             } finally {
                 inFlightKeys.update { it - key }
             }
@@ -116,10 +114,9 @@ class TranslationViewModel(
             }
 
             try {
-                runCatching {
-                    val result = sdk.translate(text, targetLang)
-                    _translations.update { it + (key to result.translatedText) }
-                }
+                val result = sdk.translate(text, targetLang)
+                _translations.update { it + (key to result.translatedText) }
+            } catch (_: Exception) {
             } finally {
                 inFlightKeys.update { it - key }
             }
@@ -152,10 +149,4 @@ class TranslationViewModel(
         return _translations.value.containsKey(key)
     }
 
-    /**
-     * Close the underlying SDK resources owned by this view model.
-     */
-    override fun close() {
-        sdk.close()
-    }
 }
