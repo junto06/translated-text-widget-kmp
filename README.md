@@ -6,45 +6,94 @@ iOS.
 
 It includes:
 
-- `shared/core`: translation SDK, provider interface, cache, models, errors
+- `shared/core`: translation SDK, provider interface, built-in LLM providers, cache, models, errors
 - `shared/compose-ui`: Jetpack Compose and Compose Multiplatform text widget
 - `shared/ios-widget`: native SwiftUI widget as a Swift Package
 - `sampleAndroid`: Android sample app
 - `iosApp`: iOS sample app with SwiftUI
 - `sampleIosCompose`: iOS Compose sample target
 
-The SDK ships with Google Translate support, but the core API is provider-based.
-Developers can plug in OpenAI, DeepSeek, another LLM, or an internal translation
-service by implementing `TranslationApi`.
+The SDK ships with Google Translate and built-in OpenAI-compatible LLM providers,
+but the core API is provider-based. Developers can plug in any service by
+implementing `TranslationApi`.
 
 ## Quick Start
 
-### Google Translate
+### 1. Initialize the SDK once
 
-The built-in Google provider requires the host app to pass a Google Translate
-API key into `TranslationSDK.Builder.apiKey(...)` or `rememberTranslationSDK(...)`.
-The SDK does not read API keys from environment variables, Gradle files,
-Info.plist, or bundled config by itself.
+Initialize the SDK once before any `TranslatedText` widget is used, for example
+in `Application.onCreate()` on Android or at app startup on iOS.
 
-Do not commit real API keys. Load them from your app's own secret boundary, such
-as Android `local.properties`/`BuildConfig`, CI secrets, a backend-issued token,
-or an iOS build setting/config file that is excluded from source control.
+#### With Google Translate
 
 ```kotlin
-val sdk = TranslationSDK.Builder()
-    .apiKey("YOUR_GOOGLE_TRANSLATE_API_KEY")
-    .defaultLanguage("de")
-    .build()
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .apiKey("YOUR_GOOGLE_TRANSLATE_API_KEY")
+        .defaultLanguage("de")
+        .build()
+)
 ```
 
-On iOS:
+#### With a built-in LLM provider
 
-```swift
-let sdk = TranslationSDK.Builder()
-    .apiKey(key: "YOUR_GOOGLE_TRANSLATE_API_KEY")
-    .defaultLanguage(lang: "de")
-    .build()
+```kotlin
+import com.sdk.translation.api.OpenAiTranslationApi
+import com.sdk.translation.api.DeepSeekTranslationApi
+
+// OpenAI
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(OpenAiTranslationApi(apiKey = "YOUR_OPENAI_API_KEY"))
+        .defaultLanguage("de")
+        .build()
+)
+
+// DeepSeek
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(DeepSeekTranslationApi(apiKey = "YOUR_DEEPSEEK_API_KEY"))
+        .defaultLanguage("de")
+        .build()
+)
 ```
+
+Call `TranslationSDK.close()` when the SDK is no longer needed (e.g.
+`Application.onTerminate()`) to release the underlying HTTP client.
+
+### 2. Use the widget
+
+No SDK reference is needed at the call site:
+
+```kotlin
+TranslatedText(
+    rawText = "Hello World",
+    translationRequired = true,
+    targetLanguage = "de"
+)
+```
+
+If `TranslationSDK.init()` has not been called, `TranslatedText` renders the
+raw text silently rather than crashing.
+
+### API key management
+
+The built-in Google provider requires a Google Translate API key passed into
+`TranslationSDK.Builder.apiKey(...)`. The built-in LLM providers require an
+API key passed directly into their constructor. The SDK does not read API keys
+from environment variables, Gradle files, Info.plist, or bundled config by
+itself.
+
+Do not commit real API keys. Load them from your app's own secret boundary:
+
+- **Android**: add `deepseek.api.key=YOUR_KEY` (or your chosen key name) to
+  `local.properties` (which is gitignored). Read it into `BuildConfig` via
+  `sampleAndroid/build.gradle.kts`. For CI, set the value as an environment
+  variable (e.g. `DEEPSEEK_API_KEY`) and read it with
+  `System.getenv("DEEPSEEK_API_KEY")` as a fallback.
+- **iOS**: copy `iosApp/Secrets.swift.template` to `iosApp/Secrets.swift`
+  (gitignored) and set `let deepseekApiKey = "YOUR_KEY"`. Both Xcode targets
+  reference this file.
 
 ### Custom Translation Provider
 
@@ -54,8 +103,8 @@ Use `translationApi(...)` when you want the SDK to call your own provider.
 import com.sdk.translation.api.TranslationApi
 import com.sdk.translation.models.TranslationItem
 
-class OpenAiTranslationApi : TranslationApi {
-    override val providerName = "openai"
+class MyTranslationApi : TranslationApi {
+    override val providerName = "my-llm"
 
     override suspend fun translateBatch(
         texts: List<String>,
@@ -64,17 +113,19 @@ class OpenAiTranslationApi : TranslationApi {
     ): List<TranslationItem> {
         return texts.map { text ->
             TranslationItem(
-                translatedText = translateWithOpenAi(text, targetLanguage),
+                translatedText = translateWithMyService(text, targetLanguage),
                 detectedSourceLanguage = sourceLanguage
             )
         }
     }
 }
 
-val sdk = TranslationSDK.Builder()
-    .translationApi(OpenAiTranslationApi())
-    .defaultLanguage("de")
-    .build()
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(MyTranslationApi())
+        .defaultLanguage("de")
+        .build()
+)
 ```
 
 `apiKey(...)` is only required for the built-in Google implementation. If you
@@ -84,25 +135,19 @@ require a Google key.
 ## Android Compose Widget
 
 ```kotlin
-val sdk = rememberTranslationSDK(
-    apiKey = "YOUR_GOOGLE_TRANSLATE_API_KEY",
-    defaultLanguage = "de"
+// Application.onCreate
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(DeepSeekTranslationApi(apiKey = BuildConfig.DEEPSEEK_API_KEY))
+        .defaultLanguage("de")
+        .build()
 )
 
+// Any composable
 TranslatedText(
     rawText = "Hello World",
-    sdk = sdk,
     translationRequired = true,
     targetLanguage = "de"
-)
-```
-
-With a custom provider:
-
-```kotlin
-val sdk = rememberTranslationSDK(
-    translationApi = OpenAiTranslationApi(),
-    defaultLanguage = "de"
 )
 ```
 
@@ -116,13 +161,39 @@ import TranslationSDK
 import TranslationSDKUI
 ```
 
+The SDK is initialized once in the Swift `App` entry point using a `StateObject`:
+
+```swift
+private final class AppSDK: ObservableObject {
+    init() {
+        TranslationSDK.companion.doInit(sdk:
+            TranslationSDK.Builder()
+                .translationApi(api: DeepSeekTranslationApi(apiKey: deepseekApiKey, model: "deepseek-chat"))
+                .build()
+        )
+    }
+    deinit { TranslationSDK.companion.close() }
+}
+
+@main struct TranslatedTextWidgetApp: App {
+    @StateObject private var appSdk = AppSDK()
+    var body: some Scene { WindowGroup { ContentView() } }
+}
+```
+
+> Note: the Kotlin `init` method is exposed in Swift as `doInit(sdk:)`. Kotlin
+> default parameter values are not bridged to Swift, so all parameters (such as
+> `model:`) must be passed explicitly.
+
+Use the singleton instance in the translate closure passed to the widget:
+
 ```swift
 TranslatedText(
     rawText: "Hello World",
     translationRequired: true,
     targetLanguage: "de",
     translate: { text, targetLanguage, completion in
-        sdk.translate(text: text, targetLanguage: targetLanguage) { result, _ in
+        TranslationSDK.companion.instance.translate(text: text, targetLanguage: targetLanguage) { result, _ in
             completion(result?.translatedText)
         }
     }
@@ -137,9 +208,18 @@ Android:
 ./gradlew :sampleAndroid:assembleDebug
 ```
 
+Before building, add your API key to `local.properties`:
+
+```
+deepseek.api.key=YOUR_KEY
+```
+
 iOS:
 
 ```bash
+# Copy the secrets template and fill in your key
+cp iosApp/Secrets.swift.template iosApp/Secrets.swift
+
 xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
   -scheme "TranslatedText Widget" \
   -sdk iphonesimulator \
@@ -152,13 +232,6 @@ xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
   -configuration Debug build \
   CODE_SIGNING_ALLOWED=NO
 ```
-
-Before testing real translations, replace `YOUR_GOOGLE_TRANSLATE_API_KEY` from a
-local secret source in:
-
-- `sampleAndroid/src/main/kotlin/com/sdk/android/MainActivity.kt`
-- `iosApp/iosApp/ContentView.swift`
-- `sampleIosCompose/src/iosMain/kotlin/com/sdk/translation/sample/compose/MainViewController.kt`
 
 ## Documentation
 

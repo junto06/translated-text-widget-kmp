@@ -4,23 +4,10 @@ import TranslationSDK
 import TranslationSDKUI
 import UIKit
 
-private final class TranslationSDKOwner: ObservableObject {
-    let sdk = TranslationSDK.Builder()
-        .apiKey(key: "YOUR_GOOGLE_TRANSLATE_API_KEY")
-        .defaultLanguage(lang: "de")
-        .build()
-
-    deinit {
-        sdk.close()
-    }
-}
-
 struct ContentView: View {
-    @StateObject private var sdkOwner = TranslationSDKOwner()
-
     var body: some View {
         TabView {
-            NativeWidgetSample(sdk: sdkOwner.sdk)
+            NativeWidgetSample()
                 .tabItem {
                     Label("SwiftUI", systemImage: "swift")
                 }
@@ -34,8 +21,6 @@ struct ContentView: View {
 }
 
 private struct NativeWidgetSample: View {
-    let sdk: TranslationSDK
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -74,7 +59,7 @@ private struct NativeWidgetSample: View {
         targetLanguage: String,
         completion: @escaping (String?) -> Void
     ) {
-        sdk.translate(text: text, targetLanguage: targetLanguage) { result, _ in
+        TranslationSDK.companion.instance.translate(text: text, targetLanguage: targetLanguage) { result, _ in
             completion(result?.translatedText)
         }
     }

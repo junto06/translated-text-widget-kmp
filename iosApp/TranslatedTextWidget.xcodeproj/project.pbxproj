@@ -16,9 +16,9 @@
 
 /* Begin PBXFileReference section */
 		1A0000010000000000000010 /* TranslatedText Widget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TranslatedText Widget.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A0000010000000000000013 /* TranslatedText Compose.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TranslatedText Compose.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000010000000000000011 /* TranslatedTextWidgetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedTextWidgetApp.swift; sourceTree = "<group>"; };
 		1A0000010000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1A0000010000000000000013 /* TranslatedText Compose.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TranslatedText Compose.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000010000000000000016 /* ComposeSampleWidgetApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeSampleWidgetApp.swift; sourceTree = "<group>"; };
 		1A0000010000000000000017 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1A0000010000000000000018 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -61,16 +61,6 @@
 			path = iosApp;
 			sourceTree = "<group>";
 		};
-		1A0000010000000000000033 /* composeSample */ = {
-			isa = PBXGroup;
-			children = (
-				1A0000010000000000000016 /* ComposeSampleWidgetApp.swift */,
-				1A0000010000000000000017 /* ComposeContentView.swift */,
-				1A0000010000000000000018 /* Info.plist */,
-			);
-			path = composeSample;
-			sourceTree = "<group>";
-		};
 		1A0000010000000000000032 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -80,6 +70,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1A0000010000000000000033 /* composeSample */ = {
+			isa = PBXGroup;
+			children = (
+				1A0000010000000000000016 /* ComposeSampleWidgetApp.swift */,
+				1A0000010000000000000017 /* ContentView.swift */,
+				1A0000010000000000000018 /* Info.plist */,
+			);
+			path = composeSample;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -87,7 +87,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A0000010000000000000080 /* Build configuration list for PBXNativeTarget "TranslatedText Widget" */;
 			buildPhases = (
-				1A0000010000000000000050 /* Build TranslationSDK */,
+				1A0000010000000000000050 /* Build iOS Frameworks */,
 				1A0000010000000000000060 /* Sources */,
 				1A0000010000000000000020 /* Frameworks */,
 				1A0000010000000000000070 /* Resources */,
@@ -108,7 +108,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1A0000010000000000000085 /* Build configuration list for PBXNativeTarget "TranslatedText Compose" */;
 			buildPhases = (
-				1A0000010000000000000051 /* Build TranslationSDK */,
+				1A0000010000000000000051 /* Build iOS Frameworks */,
 				1A0000010000000000000061 /* Sources */,
 				1A0000010000000000000021 /* Frameworks */,
 				1A0000010000000000000071 /* Resources */,
@@ -134,7 +134,7 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
-				1A0000010000000000000040 = {
+					1A0000010000000000000040 = {
 						CreatedOnToolsVersion = 26.5;
 					};
 					1A0000010000000000000041 = {
@@ -182,7 +182,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1A0000010000000000000050 /* Build TranslationSDK */ = {
+		1A0000010000000000000050 /* Build iOS Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -201,7 +201,7 @@
 			shellPath = /bin/sh;
 			shellScript = "cd \"$SRCROOT/..\"\n\nif [[ \"$SDK_NAME\" == iphoneos* ]]; then\n  KOTLIN_TARGET=\"IosArm64\"\nelif [[ \"$ARCHS\" == *x86_64* ]]; then\n  KOTLIN_TARGET=\"IosX64\"\nelse\n  KOTLIN_TARGET=\"IosSimulatorArm64\"\nfi\n\nsh gradlew \":shared:core:linkDebugFramework${KOTLIN_TARGET}\" \":sampleIosCompose:linkDebugFramework${KOTLIN_TARGET}\"\n";
 		};
-		1A0000010000000000000051 /* Build TranslationSDK */ = {
+		1A0000010000000000000051 /* Build iOS Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -237,26 +237,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A0000010000000000000003 /* ComposeSampleWidgetApp.swift in Sources */,
-				1A0000010000000000000005 /* ComposeContentView.swift in Sources */,
+				1A0000010000000000000005 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		1A0000010000000000000015 /* XCLocalSwiftPackageReference "../shared/ios-widget" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../shared/ios-widget;
-		};
-/* End XCLocalSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		1A0000010000000000000014 /* TranslationSDKUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1A0000010000000000000015 /* XCLocalSwiftPackageReference "../shared/ios-widget" */;
-			productName = TranslationSDKUI;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1A0000010000000000000081 /* Debug */ = {
@@ -265,7 +250,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -353,7 +338,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -585,6 +570,21 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		1A0000010000000000000015 /* XCLocalSwiftPackageReference "../shared/ios-widget" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../shared/ios-widget";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1A0000010000000000000014 /* TranslationSDKUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1A0000010000000000000015 /* XCLocalSwiftPackageReference "../shared/ios-widget" */;
+			productName = TranslationSDKUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1A0000010000000000000090 /* Project object */;
 }

@@ -38,7 +38,43 @@ import com.sdk.translation.TranslationSDK
 @Composable
 fun TranslatedText(
     rawText: String,
-    sdk: TranslationSDK,
+    translationRequired: Boolean = false,
+    targetLanguage: String = "en",
+    content: @Composable (
+        rawText: String,
+        translation: String?,
+        isTranslationVisible: Boolean,
+        onToggleTranslation: () -> Unit
+    ) -> Unit
+) {
+    if (!translationRequired || !TranslationSDK.isInitialized) {
+        content(rawText, null, false, {})
+        return
+    }
+
+    val translationKey = "$targetLanguage:${rawText.hashCode()}_${rawText.length}"
+    val viewModel = rememberTranslationViewModel(TranslationSDK.instance)
+    val translationState = remember(translationKey) {
+        viewModel.getTranslationState(translationKey)
+    }
+    val translation by translationState.collectAsState()
+    var isTranslationVisible by remember(translationKey) { mutableStateOf(false) }
+
+    content(
+        rawText,
+        translation,
+        isTranslationVisible
+    ) {
+        if (!isTranslationVisible) {
+            viewModel.translate(translationKey, rawText, targetLanguage)
+        }
+        isTranslationVisible = !isTranslationVisible
+    }
+}
+
+@Composable
+fun TranslatedText(
+    rawText: String,
     modifier: Modifier = Modifier,
     translationRequired: Boolean = false,
     targetLanguage: String = "en",
@@ -61,69 +97,60 @@ fun TranslatedText(
     seeTranslationText: String = "See translation",
     hideTranslationText: String = "Hide translation"
 ) {
-
-    if (!translationRequired) {
-        StyledText(
-            text = rawText,
-            modifier = modifier,
-            color = color,
-            autoSize = autoSize,
-            fontSize = fontSize,
-            fontStyle = fontStyle,
-            fontWeight = fontWeight,
-            fontFamily = fontFamily,
-            letterSpacing = letterSpacing,
-            textDecoration = textDecoration,
-            textAlign = textAlign,
-            lineHeight = lineHeight,
-            overflow = overflow,
-            softWrap = softWrap,
-            maxLines = maxLines,
-            minLines = minLines,
-            onTextLayout = onTextLayout,
-            style = style
-        )
-        return
-    }
-
-    val translationKey = "$targetLanguage:$rawText"
-    val viewModel = rememberTranslationViewModel(sdk)
-    val translationState = remember(translationKey) {
-        viewModel.getTranslationState(translationKey)
-    }
-    val translation by translationState.collectAsState()
-    var isTranslationVisible by remember(translationKey) { mutableStateOf(false) }
-
-    TranslatedTextContent(
+    TranslatedText(
         rawText = rawText,
-        translation = translation,
-        isTranslationVisible = isTranslationVisible,
-        onToggleTranslation = {
-            if (!isTranslationVisible && translation == null) {
-                viewModel.translate(translationKey, rawText, targetLanguage)
-            }
-            isTranslationVisible = !isTranslationVisible
-        },
-        modifier = modifier,
-        color = color,
-        autoSize = autoSize,
-        fontSize = fontSize,
-        fontStyle = fontStyle,
-        fontWeight = fontWeight,
-        fontFamily = fontFamily,
-        letterSpacing = letterSpacing,
-        textDecoration = textDecoration,
-        textAlign = textAlign,
-        lineHeight = lineHeight,
-        overflow = overflow,
-        softWrap = softWrap,
-        maxLines = maxLines,
-        minLines = minLines,
-        onTextLayout = onTextLayout,
-        style = style,
-        seeTranslationText = seeTranslationText,
-        hideTranslationText = hideTranslationText
-    )
+        translationRequired = translationRequired,
+        targetLanguage = targetLanguage
+    ) { currentRawText, translation, isTranslationVisible, onToggleTranslation ->
+        if (!translationRequired) {
+            StyledText(
+                text = currentRawText,
+                modifier = modifier,
+                color = color,
+                autoSize = autoSize,
+                fontSize = fontSize,
+                fontStyle = fontStyle,
+                fontWeight = fontWeight,
+                fontFamily = fontFamily,
+                letterSpacing = letterSpacing,
+                textDecoration = textDecoration,
+                textAlign = textAlign,
+                lineHeight = lineHeight,
+                overflow = overflow,
+                softWrap = softWrap,
+                maxLines = maxLines,
+                minLines = minLines,
+                onTextLayout = onTextLayout,
+                style = style
+            )
+        } else {
+            TranslatedTextContent(
+                rawText = currentRawText,
+                translation = translation,
+                isTranslationVisible = isTranslationVisible,
+                onToggleTranslation = onToggleTranslation,
+                modifier = modifier,
+                color = color,
+                autoSize = autoSize,
+                fontSize = fontSize,
+                fontStyle = fontStyle,
+                fontWeight = fontWeight,
+                fontFamily = fontFamily,
+                letterSpacing = letterSpacing,
+                textDecoration = textDecoration,
+                textAlign = textAlign,
+                lineHeight = lineHeight,
+                overflow = overflow,
+                softWrap = softWrap,
+                maxLines = maxLines,
+                minLines = minLines,
+                onTextLayout = onTextLayout,
+                style = style,
+                seeTranslationText = seeTranslationText,
+                hideTranslationText = hideTranslationText
+            )
+        }
+    }
 }
 
 @Composable

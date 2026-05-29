@@ -16,12 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.sdk.translation.TranslationSDK
 import com.sdk.translation.compose.TranslatedText
 
 @Composable
 fun TranslationSampleScreen(
-    sdk: TranslationSDK,
     modifier: Modifier = Modifier
 ) {
     MaterialTheme {
@@ -47,8 +45,8 @@ fun TranslationSampleScreen(
 
                 SampleItem {
                     TranslatedText(
-                        rawText = "Welcome to the TranslatedText Widget sample app.",
-                        sdk = sdk,
+                        rawText = "Welcome to the TranslatedText Widget sample app. This text is in English and does not require translation.",
+
                         translationRequired = false,
                         style = MaterialTheme.typography.titleMedium
                     )
@@ -57,7 +55,7 @@ fun TranslationSampleScreen(
                 SampleItem {
                     TranslatedText(
                         rawText = "This label starts in English and can be translated on demand.",
-                        sdk = sdk,
+
                         translationRequired = true,
                         targetLanguage = "es"
                     )
@@ -66,11 +64,22 @@ fun TranslationSampleScreen(
                 SampleItem {
                     TranslatedText(
                         rawText = "You can customize the link text for your product.",
-                        sdk = sdk,
+
                         translationRequired = true,
                         targetLanguage = "fr",
                         seeTranslationText = "Show French",
                         hideTranslationText = "Hide French"
+                    )
+                }
+
+                SampleItem {
+                    TranslatedText(
+                        rawText = "This is German text",
+
+                        translationRequired = true,
+                        targetLanguage = "de",
+                        seeTranslationText = "Show German",
+                        hideTranslationText = "Hide German"
                     )
                 }
             }

@@ -1,7 +1,7 @@
 # TranslatedText Widget Wiki
 
 This page describes how the SDK is structured, how to integrate the translated
-text widgets, and how to replace Google Translate with another provider.
+text widgets, and how to replace or extend the translation provider.
 
 ## Goals
 
@@ -11,8 +11,8 @@ TranslatedText Widget is designed around three separate concerns:
 - Shared Compose text widget in `shared/compose-ui`
 - Native SwiftUI text widget in `shared/ios-widget`
 
-The core module does not depend on Compose or SwiftUI. Widget layers receive a
-`TranslationSDK` instance and ask it for translations before rendering text.
+The core module does not depend on Compose or SwiftUI. The SDK is initialized
+once as a singleton and accessed globally by the widget layer.
 
 ## Module Overview
 
@@ -23,12 +23,16 @@ Contains the public SDK:
 - `TranslationSDK`
 - `TranslationSDK.Builder`
 - `TranslationApi`
-- `GoogleTranslateApi`
+- Built-in providers in `com.sdk.translation.api`:
+  - `GoogleTranslateApi`
+  - `ChatCompletionsTranslationApi` (abstract base for OpenAI-compatible APIs)
+  - `OpenAiTranslationApi(apiKey, model = "gpt-4o-mini")`
+  - `DeepSeekTranslationApi(apiKey, model = "deepseek-chat")`
 - cache and error handling
 - translation models
 - shared `TranslationViewModel`
 
-The important extension point is:
+The extension point for custom providers is:
 
 ```kotlin
 interface TranslationApi : Closeable {
@@ -42,14 +46,13 @@ interface TranslationApi : Closeable {
 }
 ```
 
-`TranslationSDK` depends on this interface, not on Google directly.
+`TranslationSDK` depends on this interface, not on any provider directly.
 
 ### `shared/compose-ui`
 
 Contains the Compose text widget:
 
 - `TranslatedText`
-- `rememberTranslationSDK`
 - Android ViewModel wrapper
 
 Use this module when the host app wants a Compose `TranslatedText` widget on
@@ -68,49 +71,84 @@ translation backend.
 
 ### `iosApp`
 
-The iOS sample consumes the native SwiftUI widget through
-`TranslationSDKUI.TranslatedText`.
+The iOS sample initializes the SDK in the Swift `App` entry point and consumes
+the native SwiftUI widget through `TranslationSDKUI.TranslatedText`.
 
 ### `sampleIosCompose`
 
 The Compose sample target is sample-only and consumes the production widget
 through the `ComposeSampleUI` framework and its `MainViewControllerKt.MainViewController()`
-entry point. It keeps the Compose demo out of the published `shared/compose-ui`
-module.
+entry point. `MainViewController.kt` does not initialize the SDK — it only
+returns the Compose UI. SDK initialization is handled by the Swift `App` entry
+point alongside the SwiftUI sample.
 
 ## Provider Model
 
-The SDK supports two provider paths.
+### Built-In Providers
 
-### Built-In Google Provider
+#### Google Translate
 
-The built-in provider is a thin Google Translate REST client. The host app owns
-the API key boundary and passes the key into `TranslationSDK.Builder.apiKey(...)`
-or `rememberTranslationSDK(...)`. The SDK does not discover keys from environment
-variables, Gradle files, Info.plist, or bundled config.
-
-Do not commit real API keys. Keep them in app-owned secret storage or build-time
-configuration that is excluded from source control, such as Android
-`local.properties`/`BuildConfig`, CI secrets, a backend-issued token, or an iOS
-build setting/config file.
+A thin Google Translate REST client. The host app owns the API key boundary and
+passes the key into `TranslationSDK.Builder.apiKey(...)`. The SDK does not
+discover keys from environment variables, Gradle files, Info.plist, or bundled
+config.
 
 ```kotlin
-val sdk = TranslationSDK.Builder()
-    .apiKey("YOUR_GOOGLE_TRANSLATE_API_KEY")
-    .defaultLanguage("de")
-    .build()
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .apiKey("YOUR_GOOGLE_TRANSLATE_API_KEY")
+        .defaultLanguage("de")
+        .build()
+)
 ```
 
-This creates `GoogleTranslateApi` internally. If `translationApi(...)` is
-provided instead, the SDK uses that provider and does not require a Google key.
+#### OpenAI and DeepSeek
+
+`OpenAiTranslationApi` and `DeepSeekTranslationApi` are ready-to-use
+implementations of `ChatCompletionsTranslationApi`, an abstract base that handles
+the OpenAI-compatible chat completions request format.
+
+```kotlin
+import com.sdk.translation.api.OpenAiTranslationApi
+import com.sdk.translation.api.DeepSeekTranslationApi
+
+// OpenAI (defaults to gpt-4o-mini)
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(OpenAiTranslationApi(apiKey = "YOUR_OPENAI_API_KEY"))
+        .defaultLanguage("de")
+        .build()
+)
+
+// DeepSeek (defaults to deepseek-chat)
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(DeepSeekTranslationApi(apiKey = "YOUR_DEEPSEEK_API_KEY"))
+        .defaultLanguage("de")
+        .build()
+)
+
+// Explicit model selection
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(OpenAiTranslationApi(apiKey = "YOUR_OPENAI_API_KEY", model = "gpt-4o"))
+        .defaultLanguage("de")
+        .build()
+)
+```
+
+When `translationApi(...)` is provided, `apiKey(...)` is not required and the
+Google provider is not used.
 
 ### Custom Provider
 
 ```kotlin
-val sdk = TranslationSDK.Builder()
-    .translationApi(MyTranslationApi())
-    .defaultLanguage("de")
-    .build()
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(MyTranslationApi())
+        .defaultLanguage("de")
+        .build()
+)
 ```
 
 When `translationApi(...)` is provided, `apiKey(...)` is not required.
@@ -162,12 +200,27 @@ Recommended provider behavior:
 - Override `providerName` so error reports identify the provider.
 - Close HTTP clients or streaming clients in `close()`.
 
-## OpenAI or DeepSeek Integration Shape
+## LLM Provider Shape
 
-The SDK does not hard-code an LLM request format. A provider can call any service
-as long as it maps the response back into `TranslationItem`.
+The built-in `ChatCompletionsTranslationApi` base class handles the
+OpenAI-compatible chat completions format. To target any other OpenAI-compatible
+endpoint (e.g. a locally-run model via Ollama), subclass it directly:
 
-Typical LLM prompt constraints:
+```kotlin
+class OllamaTranslationApi(
+    apiKey: String = "ollama",
+    model: String = "llama3"
+) : ChatCompletionsTranslationApi(
+    apiKey = apiKey,
+    model = model,
+    baseUrl = "http://localhost:11434/v1/chat/completions"
+) {
+    override val providerName = "ollama"
+}
+```
+
+When building a custom LLM provider that targets a different API entirely, follow
+these prompt constraints:
 
 - Ask for translation only.
 - Preserve meaning and tone.
@@ -175,65 +228,80 @@ Typical LLM prompt constraints:
 - For batch requests, return exactly one translated string per input.
 - Keep output order identical to input order.
 
-Example skeleton:
+## Secret Management
+
+### Android
+
+Add your API key to `local.properties` (gitignored):
+
+```
+deepseek.api.key=YOUR_KEY
+```
+
+`sampleAndroid/build.gradle.kts` reads this value and injects it into
+`BuildConfig.DEEPSEEK_API_KEY`. For CI environments, the same build script
+falls back to `System.getenv("DEEPSEEK_API_KEY")` when the property is absent
+from `local.properties`.
 
 ```kotlin
-class OpenAiTranslationApi(
-    private val client: OpenAiClient
-) : TranslationApi {
-    override val providerName = "openai"
+// In Application.onCreate
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(DeepSeekTranslationApi(apiKey = BuildConfig.DEEPSEEK_API_KEY))
+        .build()
+)
+```
 
-    override suspend fun translateBatch(
-        texts: List<String>,
-        targetLanguage: String,
-        sourceLanguage: String?
-    ): List<TranslationItem> {
-        val translatedTexts = client.translateBatch(
-            texts = texts,
-            targetLanguage = targetLanguage,
-            sourceLanguage = sourceLanguage
+### iOS
+
+Copy `iosApp/Secrets.swift.template` to `iosApp/Secrets.swift` (gitignored)
+and fill in your key:
+
+```swift
+let deepseekApiKey = "YOUR_KEY"
+```
+
+Both Xcode targets reference `Secrets.swift`. Do not commit this file.
+
+## Android Integration
+
+Initialize the SDK once in `Application.onCreate()` and close it in
+`Application.onTerminate()`. No SDK reference is needed at the widget call site.
+
+```kotlin
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        TranslationSDK.init(
+            TranslationSDK.Builder()
+                .translationApi(DeepSeekTranslationApi(apiKey = BuildConfig.DEEPSEEK_API_KEY))
+                .defaultLanguage("de")
+                .build()
         )
+    }
 
-        return translatedTexts.map { translated ->
-            TranslationItem(translatedText = translated)
-        }
+    override fun onTerminate() {
+        super.onTerminate()
+        TranslationSDK.close()
     }
 }
 ```
 
-## Android Integration
-
-Use the Compose helper when the SDK should be created and closed with the
-Composable lifecycle.
-
-```kotlin
-val sdk = rememberTranslationSDK(
-    apiKey = "YOUR_GOOGLE_TRANSLATE_API_KEY",
-    defaultLanguage = "de"
-)
-```
-
-Custom provider:
-
-```kotlin
-val sdk = rememberTranslationSDK(
-    translationApi = MyTranslationApi(client),
-    defaultLanguage = "de"
-)
-```
-
-Render translated text:
+Render translated text anywhere in your Compose tree:
 
 ```kotlin
 TranslatedText(
     rawText = "This label can be translated.",
-    sdk = sdk,
     translationRequired = true,
     targetLanguage = "fr",
     seeTranslationText = "Show French",
     hideTranslationText = "Hide French"
 )
 ```
+
+If `TranslationSDK.init()` has not been called, `TranslatedText` renders the raw
+text silently rather than crashing. `TranslationSDK.isInitialized` can be
+checked before rendering if explicit guard behavior is needed.
 
 ## iOS SwiftUI Integration
 
@@ -244,16 +312,42 @@ import TranslationSDK
 import TranslationSDKUI
 ```
 
-Create the Kotlin SDK:
+### SDK initialization
+
+Initialize the SDK in the Swift `App` entry point using a `StateObject` so
+the lifecycle is tied to the app's lifetime:
 
 ```swift
-let sdk = TranslationSDK.Builder()
-    .apiKey(key: "YOUR_GOOGLE_TRANSLATE_API_KEY")
-    .defaultLanguage(lang: "de")
-    .build()
+private final class AppSDK: ObservableObject {
+    init() {
+        TranslationSDK.companion.doInit(sdk:
+            TranslationSDK.Builder()
+                .translationApi(api: DeepSeekTranslationApi(apiKey: deepseekApiKey, model: "deepseek-chat"))
+                .build()
+        )
+    }
+    deinit { TranslationSDK.companion.close() }
+}
+
+@main struct TranslatedTextWidgetApp: App {
+    @StateObject private var appSdk = AppSDK()
+    var body: some Scene { WindowGroup { ContentView() } }
+}
 ```
 
-Connect it to the SwiftUI widget:
+Two important Swift/Kotlin interop notes:
+
+- The Kotlin `init` method is exposed in Swift as `doInit(sdk:)` to avoid
+  collision with Swift's initializer keyword.
+- Kotlin default parameter values are not bridged to Swift, so all parameters
+  (such as `model:`) must be passed explicitly when calling from Swift.
+
+`MainViewController.kt` does not initialize the SDK; it only returns the Compose
+UI. SDK initialization always belongs in the Swift `App` entry point.
+
+### Using the widget
+
+Pass the SDK singleton through the translate closure:
 
 ```swift
 TranslatedText(
@@ -263,7 +357,7 @@ TranslatedText(
     seeTranslationText: "Voir la traduction",
     hideTranslationText: "Masquer la traduction",
     translate: { text, targetLanguage, completion in
-        sdk.translate(text: text, targetLanguage: targetLanguage) { result, _ in
+        TranslationSDK.companion.instance.translate(text: text, targetLanguage: targetLanguage) { result, _ in
             completion(result?.translatedText)
         }
     }
@@ -276,10 +370,10 @@ service directly if the app does not want to route through Kotlin.
 ## Caching Behavior
 
 `TranslationSDK` checks cache before calling the provider. Cache keys include the
-source text and target language. If a cached translation exists, no provider call
-is made.
+hash and length of the source text combined with the target language. If a cached
+translation exists, no provider call is made.
 
-The current cache is persistent, not in-memory only. `TranslationCache` stores
+The cache is persistent, not in-memory only. `TranslationCache` stores
 JSON-encoded entries through `multiplatform-settings`:
 
 - Android: `SharedPreferencesSettings` backed by the private
@@ -311,22 +405,23 @@ Use `TranslationErrorReporter` to receive SDK errors:
 import com.sdk.translation.errors.TranslationErrorReporter
 import com.sdk.translation.errors.TranslationSdkException
 
-val sdk = TranslationSDK.Builder()
-    .apiKey("YOUR_GOOGLE_TRANSLATE_API_KEY")
-    .errorReporter(
-        object : TranslationErrorReporter {
-            override fun report(error: TranslationSdkException) {
-                recordTranslationError(error.report)
+TranslationSDK.init(
+    TranslationSDK.Builder()
+        .translationApi(DeepSeekTranslationApi(apiKey = BuildConfig.DEEPSEEK_API_KEY))
+        .errorReporter(
+            object : TranslationErrorReporter {
+                override fun report(error: TranslationSdkException) {
+                    recordTranslationError(error.report)
+                }
             }
-        }
-    )
-    .build()
+        )
+        .build()
+)
 ```
 
-The shared `TranslationViewModel` does not log failures with `println`. Failed
-requests are reported by `TranslationSDK` through the configured
-`TranslationErrorReporter`; the view model only keeps its in-memory state
-unchanged when a request fails.
+The shared `TranslationViewModel` does not log failures. Failed requests are
+reported by `TranslationSDK` through the configured `TranslationErrorReporter`;
+the view model only keeps its in-memory state unchanged when a request fails.
 
 Error reports include:
 
@@ -339,25 +434,27 @@ Error reports include:
 
 ## Lifecycle
 
-Call `close()` when the SDK is no longer needed. The SDK owns the active
-`TranslationApi`; the built-in Google provider closes its Ktor HTTP client from
-this path.
+The SDK is a singleton initialized once and closed once at the app level.
 
 ```kotlin
-sdk.close()
+// App start
+TranslationSDK.init(sdk)
+
+// App teardown
+TranslationSDK.close()
 ```
 
-`close()` is idempotent, so duplicate lifecycle teardown is safe.
+`TranslationSDK.close()` is safe to call even if `init()` was never called.
+It releases the underlying HTTP client owned by the active `TranslationApi`.
 
-Platform behavior in this project:
+Platform-specific coroutine scope teardown:
 
-- Android Compose: `rememberTranslationSDK(...)` closes the SDK with
-  `DisposableEffect`, and `AndroidTranslationViewModel.onCleared()` also closes
-  the shared view model/SDK when the Android lifecycle ViewModel is destroyed.
-- iOS Compose: the cached Compose `TranslationViewModel` cancels its
-  `MainScope` and closes the SDK when the last Compose reference is disposed.
-- iOS SwiftUI: keep the SDK in an owning object such as an `ObservableObject`
-  and call `sdk.close()` from `deinit` or the app lifecycle teardown.
+- Android Compose: `viewModelScope` is cancelled automatically by the Android
+  framework when `AndroidTranslationViewModel.onCleared()` fires.
+- iOS Compose: the cached `MainScope` is cancelled when the last Compose
+  reference to the view model is disposed.
+- iOS SwiftUI: the SDK is owned and closed by the `AppSDK` object held in the
+  Swift `App` entry point via `@StateObject`.
 
 ## Build Commands
 
@@ -379,6 +476,9 @@ Shared Kotlin verification:
 iOS sample targets:
 
 ```bash
+# Copy the secrets template and fill in your key before building
+cp iosApp/Secrets.swift.template iosApp/Secrets.swift
+
 xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
   -scheme "TranslatedText Widget" \
   -sdk iphonesimulator \
@@ -399,3 +499,8 @@ xcodebuild -project iosApp/TranslatedTextWidget.xcodeproj \
   and `ComposeSampleUI.framework`.
 - `shared/ios-widget` is a Swift Package and does not depend directly on the
   Kotlin framework.
+- SDK initialization for both the SwiftUI and Compose sample targets lives
+  exclusively in the Swift `App` entry point. `MainViewController.kt` does not
+  perform any SDK initialization.
+- `iosApp/Secrets.swift` is gitignored. Copy from `Secrets.swift.template` and
+  add the file to both Xcode targets before building.

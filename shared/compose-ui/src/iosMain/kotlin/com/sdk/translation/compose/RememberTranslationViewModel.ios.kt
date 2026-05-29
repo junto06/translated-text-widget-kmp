@@ -60,7 +60,6 @@ internal actual fun rememberTranslationViewModel(sdk: TranslationSDK): Translati
             }
 
             if (shouldCancel) {
-                cached.viewModel.close()
                 cached.scope.cancel()
             }
         }
